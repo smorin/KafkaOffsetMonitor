@@ -19,6 +19,18 @@ trait BatchConsumerWorker[K,V,T] {
   def getBatch() : T
 }
 
+class MessageBufferingWorker[K,V] extends BatchConsumerWorker[K,V,Seq[V]] {
+  var buffer = Vector[V]()
+  def addMessageToBatch(msg: MessageAndMetadata[K,V]) {buffer :+= msg.message}
+  def getBatch() = {
+    //NOTE: addMessageToBatch CAN NOT get called at the same time as this, so this is safe
+    val b = buffer
+    buffer = Vector[V]()
+    b
+  }
+}
+
+
 trait BatchMerger[T] {
   def handleBatch(batch: Iterator[T]) : Unit
 }
