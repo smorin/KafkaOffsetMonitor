@@ -43,7 +43,10 @@ object SumacBuild extends Build {
   val slf4jVersion = "1.6.1"
 
   def consumerSettings = sharedSettings ++ Seq(
-    name := "kafka-consumer-util"
+    name := "kafka-consumer-util",
+    libraryDependencies ++= Seq(
+      "org.apache.kafka" % "kafka_2.10" % "0.8.0.f4fc9b9" //this is a version of kafka w/ commitOffsets(offsets)
+    )
   )
   
 }
