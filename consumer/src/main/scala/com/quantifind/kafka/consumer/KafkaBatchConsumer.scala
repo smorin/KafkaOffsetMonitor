@@ -1,6 +1,6 @@
 package com.quantifind.kafka.consumer
 
-import java.util.concurrent.{BlockingQueue, ArrayBlockingQueue}
+import java.util.concurrent.{Executors, BlockingQueue, ArrayBlockingQueue}
 
 import scala.collection._
 import scala.collection.JavaConverters._
@@ -31,14 +31,18 @@ class KafkaBatchConsumer[K,V,T](
   consumerConfig: ConsumerConfig,
   topicsToThreadsAndWorkers: Map[String,(Int, () => BatchConsumerWorker[K,V,T])],
   batchMerger: BatchMerger[T],
-  batcher: Batcher,
+  batchTime: Duration,
   keyDecoder: Decoder[K],
   valueDecoder: Decoder[V]
   ) extends ConsumerTemplate[K,V,BatchConsumerWorker[K,V,T], KafkaBatchProcessor[K,V,T]](
-  consumerConfig, topicsToThreadsAndWorkers, batcher, keyDecoder, valueDecoder
+  consumerConfig, topicsToThreadsAndWorkers, batchTime, keyDecoder, valueDecoder
 ) {
 
   val batchQueue = new ArrayBlockingQueue[(Seq[PartitionTopicOffset],T)](nThreads)
+  val batchProcessScheduler = Executors.newScheduledThreadPool(1)
+  batchProcessScheduler.scheduleWithFixedDelay(new Runnable{
+    def run() {processBatchNow()}
+  }, batchTime.toMillis, batchTime.toMillis, java.util.concurrent.TimeUnit.MILLISECONDS)
 
   override
   def makeWorkerRunnable(worker: BatchConsumerWorker[K,V,T], itr: Iterator[MessageAndMetadata[K,V]]) = {
@@ -46,7 +50,7 @@ class KafkaBatchConsumer[K,V,T](
       consumer,
       worker,
       itr,
-      batcher,
+      batchTime.toNanos,
       batchQueue
     )
   }
@@ -92,13 +96,13 @@ object KafkaBatchConsumer {
     workerFactory: () => BatchConsumerWorker[String,String,T],
     batchMerger: BatchMerger[T],
     consumerTimeout: Long = 100,
-    batcher: Batcher = new BatchByTime(1.minute.toNanos)
+    batchTime: Duration = 1.minute
   ) : KafkaBatchConsumer[String,String,T] = {
     new KafkaBatchConsumer(
       KafkaConsumer.config(zookeeper, group, consumerTimeout),
       Map(topic -> (maxThreads, workerFactory)),
       batchMerger,
-      batcher,
+      batchTime,
       new StringDecoder(),
       new StringDecoder()
     )
@@ -109,12 +113,13 @@ private[kafka] class KafkaBatchProcessor[K,V,T](
     val consumer: ConsumerConnector,
     val worker: BatchConsumerWorker[K,V,T],
     val itr: Iterator[MessageAndMetadata[K,V]],
-    val batcher: Batcher,
+    val batchTimeNanos: Long,
     val batchQueue: BlockingQueue[(Seq[PartitionTopicOffset],T)]
 ) extends Runnable with PositionTracker {
 
+  var lastBatchTime : Long = _
   def run() {
-
+    lastBatchTime = System.nanoTime()
     while (true) {
       try {
         while(itr.hasNext) {
@@ -123,16 +128,20 @@ private[kafka] class KafkaBatchProcessor[K,V,T](
           val next = itr.next()
           worker.addMessageToBatch(next)
           updatePosition(next)
-          if (batcher.isBatchDone()) {
-            batchQueue.put(getBatchAndOffsets())
-          }
+          maybeBatch()
         }
       } catch {
         case cto: ConsumerTimeoutException =>
-          if (batcher.isBatchDone()) {
-            batchQueue.put(getBatchAndOffsets())
-          }
+          maybeBatch()
       }
+    }
+  }
+
+  def maybeBatch() = {
+    val now = System.nanoTime()
+    if (now - lastBatchTime > batchTimeNanos) {
+      batchQueue.put(getBatchAndOffsets())
+      lastBatchTime = now
     }
   }
 

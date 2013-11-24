@@ -17,7 +17,7 @@ import kafka.message.MessageAndMetadata
 abstract class ConsumerTemplate[K,V,W,P <: Runnable](
     val consumerConfig: ConsumerConfig,
     val topicsToThreadsAndWorkers: Map[String,(Int, () => W)],
-    val batcher: Batcher,
+    val batchTime: Duration,
     val keyDecoder: Decoder[K],
     val valueDecoder: Decoder[V]
 ) {
@@ -72,11 +72,11 @@ abstract class ConsumerTemplate[K,V,W,P <: Runnable](
 class KafkaConsumer[K,V](
   consumerConfig: ConsumerConfig,
   topicsToThreadsAndWorkers: Map[String,(Int, () => ConsumerWorker[K,V])],
-  batcher: Batcher,
+  batchTime: Duration,
   keyDecoder: Decoder[K],
   valueDecoder: Decoder[V]
 ) extends ConsumerTemplate[K,V,ConsumerWorker[K,V], KafkaProcessor[K,V]](
-  consumerConfig, topicsToThreadsAndWorkers, batcher, keyDecoder, valueDecoder
+  consumerConfig, topicsToThreadsAndWorkers, batchTime, keyDecoder, valueDecoder
 ) {
   override
   def makeWorkerRunnable(worker: ConsumerWorker[K,V], itr: Iterator[MessageAndMetadata[K,V]]) = {
@@ -84,7 +84,7 @@ class KafkaConsumer[K,V](
       consumer,
       worker,
       itr,
-      batcher
+      batchTime.toNanos
     )
   }
 }
@@ -99,12 +99,12 @@ object KafkaConsumer {
     maxThreads: Int,
     workerFactory: () => ConsumerWorker[String,String],
     consumerTimeout: Long = 100,
-    batcher: Batcher = new BatchByTime(1.minute.toNanos)
+    batchTime: Duration =  1.minute
   ) : KafkaConsumer[String,String] = {
     new KafkaConsumer(
       config(zookeeper, group, consumerTimeout),
       Map(topic -> (maxThreads, workerFactory)),
-      batcher,
+      batchTime,
       new StringDecoder(),
       new StringDecoder()
     )
@@ -129,11 +129,12 @@ private[kafka] class KafkaProcessor[K,V](
     val consumer: ConsumerConnector,
     val worker: ConsumerWorker[K,V],
     val itr: Iterator[MessageAndMetadata[K,V]],
-    val batcher: Batcher
+    val batchTimeNanos: Long
 ) extends Runnable with PositionTracker {
 
+  var lastBatchTime : Long = _
   def run() {
-    batcher.start()
+    lastBatchTime = System.nanoTime()
     while(true) {
       try {
         while(itr.hasNext) {
@@ -152,8 +153,10 @@ private[kafka] class KafkaProcessor[K,V](
   }
 
   def maybeCommit() {
-    if (batcher.isBatchDone()) {
+    val now = System.nanoTime()
+    if (now - lastBatchTime > batchTimeNanos) {
       consumer.commitOffsets(positions)
+      lastBatchTime = now
     }
   }
 }
