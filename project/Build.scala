@@ -1,7 +1,7 @@
 import sbt._
 import Keys._
 
-object SumacBuild extends Build {
+object KafkaUtilsBuild extends Build {
   lazy val consumer = Project("consumer", file("consumer"), settings = consumerSettings)
 
   def sharedSettings = Defaults.defaultSettings ++ Seq(
@@ -45,7 +45,7 @@ object SumacBuild extends Build {
   def consumerSettings = sharedSettings ++ Seq(
     name := "kafka-consumer-util",
     libraryDependencies ++= Seq(
-      "org.apache.kafka" % "kafka_2.10" % "0.8.0.f4fc9b9" //this is a version of kafka w/ commitOffsets(offsets)
+      "org.apache.kafka" % "kafka_2.10" % "0.8.0.81bb36b" //this is a version of kafka w/ commitOffsets(offsets)
     )
   )
   

@@ -155,7 +155,7 @@ private[kafka] class KafkaProcessor[K,V](
   def maybeCommit() {
     val now = System.nanoTime()
     if (now - lastBatchTime > batchTimeNanos) {
-      consumer.commitOffsets(positions)
+      consumer.commitOffsets(positions, preventBackwardsCommit = true)
       lastBatchTime = now
     }
   }

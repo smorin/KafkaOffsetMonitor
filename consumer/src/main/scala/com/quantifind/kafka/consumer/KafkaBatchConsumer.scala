@@ -70,7 +70,7 @@ class KafkaBatchConsumer[K,V,T](
     // commit happens, then quit.
 
     //and now that your app is through with processing the batch, we can commit the updates
-    consumer.commitOffsets(offsetsToCommit)
+    consumer.commitOffsets(offsetsToCommit, preventBackwardsCommit = true)
   }
 
   def mergeOffsets(offsets: Seq[PartitionTopicOffset]): Map[String, Iterable[PartitionTopicOffset]] = {
