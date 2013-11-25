@@ -10,6 +10,7 @@ import scala.concurrent.duration._
 import org.I0Itec.zkclient.ZkClient
 
 import kafka.utils.ZkUtils
+import kafka.utils.ZKStringSerializer
 import kafka.serializer.{StringDecoder, Decoder}
 import kafka.consumer._
 import kafka.message.MessageAndMetadata
@@ -33,7 +34,7 @@ abstract class ConsumerTemplate[K,V,W,P <: Runnable](
     // which is why I do this check.  but seems a little crazy
     val topics = topicsToThreadsAndWorkers.keys.toSeq
     val zookeeper = consumerConfig.props.getString("zookeeper.connect")
-    val zkClient = new ZkClient(zookeeper)
+    val zkClient = new ZkClient(zookeeper, 30000, 30000, ZKStringSerializer)
     val topicPartitions = ZkUtils.getPartitionsForTopics(zkClient, topics)
     zkClient.close()
 
