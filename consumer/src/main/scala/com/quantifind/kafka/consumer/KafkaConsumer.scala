@@ -46,6 +46,7 @@ abstract class ConsumerTemplate[K,V,W,P <: Runnable](
   }
 
   protected def makeWorkerRunnable(w: W, itr: Iterator[MessageAndMetadata[K,V]]): P
+  protected def commitFinalOffsets() : Unit
 
   private val topicToWorkers : Map[String, List[P]] = {
     topicIterators.map{case(topic, itrs) =>
@@ -57,14 +58,15 @@ abstract class ConsumerTemplate[K,V,W,P <: Runnable](
     }
   }
 
-  private val workers = topicToWorkers.values.flatten
+  private[kafka] val workers = topicToWorkers.values.flatten
   val nThreads = workers.size
 
   private val pool = Executors.newFixedThreadPool(nThreads)
   workers.foreach{w => pool.submit(w)}
 
-  def shutdown {
+  def shutdown() {
     pool.shutdownNow()
+    commitFinalOffsets()
     consumer.shutdown()
   }
 
@@ -88,6 +90,12 @@ class KafkaConsumer[K,V](
       batchTime.toNanos
     )
   }
+
+  override
+  def commitFinalOffsets() {
+    workers.foreach{w => w.doCommit()}
+  }
+
 }
 
 
@@ -119,6 +127,7 @@ object KafkaConsumer {
       "zookeeper.session.timeout.ms" -> "400",
       "zookeeper.sync.time.ms" -> "200",
       "auto.commit.enable" -> "false",
+      "auto.offset.reset" -> "smallest",
       "consumer.timeout.ms" -> consumerTimeout.toString
     ).asJava)
     new ConsumerConfig(props)
@@ -135,30 +144,39 @@ private[kafka] class KafkaProcessor[K,V](
 
   var lastBatchTime : Long = _
   def run() {
-    lastBatchTime = System.nanoTime()
-    while(true) {
-      try {
-        while(itr.hasNext) {
-          //note that calling next() will update the consumers internal notion of offsets, but we don't care.
-          // we only use offsets from the messages themselves
-          val next = itr.next()
-          worker.handleMessage(next)
-          updatePosition(next)
-          maybeCommit()
+    try {
+      lastBatchTime = System.nanoTime()
+      while(true) {
+        try {
+          while(itr.hasNext) {
+            //note that calling next() will update the consumers internal notion of offsets, but we don't care.
+            // we only use offsets from the messages themselves
+            val next = itr.next()
+            worker.handleMessage(next)
+            updatePosition(next)
+            maybeCommit()
+          }
+        } catch {
+          case cto: ConsumerTimeoutException =>
+            maybeCommit()
         }
-      } catch {
-        case cto: ConsumerTimeoutException =>
-          maybeCommit()
       }
+    } catch {
+      case ex: Exception =>
+        ex.printStackTrace()
     }
   }
 
   def maybeCommit() {
     val now = System.nanoTime()
     if (now - lastBatchTime > batchTimeNanos) {
-      consumer.commitOffsets(positions, preventBackwardsCommit = true)
+      doCommit()
       lastBatchTime = now
     }
+  }
+
+  def doCommit() {
+    consumer.commitOffsets(positions, preventBackwardsCommit = true)
   }
 }
 

@@ -45,7 +45,7 @@ object KafkaUtilsBuild extends Build {
   def consumerSettings = sharedSettings ++ Seq(
     name := "kafka-consumer-util",
     libraryDependencies ++= Seq(
-      "org.apache.kafka" % "kafka_2.10" % "0.8.0.81bb36b" //this is a version of kafka w/ commitOffsets(offsets)
+      "org.apache.kafka" % "kafka_2.10" % "0.8.0.a51bd8c" //this is a version of kafka w/ commitOffsets(offsets)
     )
   )
   

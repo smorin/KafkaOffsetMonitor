@@ -51,29 +51,39 @@ class KafkaBatchConsumer[K,V,T](
       worker,
       itr,
       batchTime.toNanos,
-      batchQueue
+      this
     )
   }
 
-  def processBatchNow() = {
-    val jBatchesToProcess = new java.util.ArrayList[(Seq[PartitionTopicOffset],T)]()
-    batchQueue.drainTo(jBatchesToProcess)
-    val batchesToProcess = jBatchesToProcess.asScala
-    val offsetsToCommit = mergeOffsets(batchesToProcess.map{_._1}.flatten)
-
-    //now the final step of your app to process the data.
-    batchMerger.handleBatch(batchesToProcess.iterator.map{_._2})
-
-    //TODO if the app dies right here, then the batch has been fully processd, but not committed, so
-    // we'll process the batch again next time.  We can't really completely prevent that, but we should at
-    // least try on a "graceful" shutdown -- if the user tries to shutdown in the middle here, wait till
-    // commit happens, then quit.
-
-    //and now that your app is through with processing the batch, we can commit the updates
-    consumer.commitOffsets(offsetsToCommit, preventBackwardsCommit = true)
+  override
+  def commitFinalOffsets() {
+    processBatchNow() //process the last batch and then commit its offsets
   }
 
-  def mergeOffsets(offsets: Seq[PartitionTopicOffset]): Map[String, Iterable[PartitionTopicOffset]] = {
+  def processBatchNow() = {
+    try {
+      val jBatchesToProcess = new java.util.ArrayList[(Seq[PartitionTopicOffset],T)]()
+      batchQueue.drainTo(jBatchesToProcess)
+      val batchesToProcess = jBatchesToProcess.asScala
+      val offsetsToCommit = mergeOffsets(batchesToProcess.map{_._1}.flatten)
+
+      //now the final step of your app to process the data.
+      batchMerger.handleBatch(batchesToProcess.iterator.map{_._2})
+
+      //TODO if the app dies right here, then the batch has been fully processd, but not committed, so
+      // we'll process the batch again next time.  We can't really completely prevent that, but we should at
+      // least try on a "graceful" shutdown -- if the user tries to shutdown in the middle here, wait till
+      // commit happens, then quit.
+
+      //and now that your app is through with processing the batch, we can commit the updates
+      consumer.commitOffsets(offsetsToCommit, preventBackwardsCommit = true)
+    } catch {
+      case ex: Exception =>
+        ex.printStackTrace()
+    }
+}
+
+def mergeOffsets(offsets: Seq[PartitionTopicOffset]): Map[String, Iterable[PartitionTopicOffset]] = {
     offsets.groupBy{pto => pto.topic}.map{case(topic, partitionsAndOffsets) =>
       val maxPerTopic: Iterable[PartitionTopicOffset] = partitionsAndOffsets.groupBy{_.partition}.map{ case(partition, offsets) =>
         //for each partition, we just want the max offset.
@@ -114,33 +124,39 @@ private[kafka] class KafkaBatchProcessor[K,V,T](
     val worker: BatchConsumerWorker[K,V,T],
     val itr: Iterator[MessageAndMetadata[K,V]],
     val batchTimeNanos: Long,
-    val batchQueue: BlockingQueue[(Seq[PartitionTopicOffset],T)]
+    val kbc: KafkaBatchConsumer[K,V,T]
 ) extends Runnable with PositionTracker {
 
   var lastBatchTime : Long = _
   def run() {
-    lastBatchTime = System.nanoTime()
-    while (true) {
-      try {
-        while(itr.hasNext) {
-          //note that calling next() will update the consumers internal notion of offsets, but we don't care.
-          // we only use offsets from the messages themselves
-          val next = itr.next()
-          worker.addMessageToBatch(next)
-          updatePosition(next)
-          maybeBatch()
+    try {
+
+      lastBatchTime = System.nanoTime()
+      while (true) {
+        try {
+          while(itr.hasNext) {
+            //note that calling next() will update the consumers internal notion of offsets, but we don't care.
+            // we only use offsets from the messages themselves
+            val next = itr.next()
+            worker.addMessageToBatch(next)
+            updatePosition(next)
+            maybeBatch()
+          }
+        } catch {
+          case cto: ConsumerTimeoutException =>
+            maybeBatch()
         }
-      } catch {
-        case cto: ConsumerTimeoutException =>
-          maybeBatch()
       }
+    } catch {
+      case ex: Exception =>
+        ex.printStackTrace()
     }
   }
 
   def maybeBatch() = {
     val now = System.nanoTime()
     if (now - lastBatchTime > batchTimeNanos) {
-      batchQueue.put(getBatchAndOffsets())
+      kbc.batchQueue.put(getBatchAndOffsets())
       lastBatchTime = now
     }
   }
