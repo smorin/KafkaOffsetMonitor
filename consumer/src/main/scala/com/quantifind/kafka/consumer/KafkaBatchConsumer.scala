@@ -38,7 +38,7 @@ class KafkaBatchConsumer[K,V,T](
   consumerConfig, topicsToThreadsAndWorkers, batchTime, keyDecoder, valueDecoder
 ) {
 
-  val batchQueue = new ArrayBlockingQueue[(Seq[PartitionTopicOffset],T)](nThreads)
+  val batchQueue = new ArrayBlockingQueue[(Seq[PartitionTopicOffset],T)](nThreads * 2)
   val batchProcessScheduler = Executors.newScheduledThreadPool(1)
   batchProcessScheduler.scheduleWithFixedDelay(new Runnable{
     def run() {processBatchNow()}
