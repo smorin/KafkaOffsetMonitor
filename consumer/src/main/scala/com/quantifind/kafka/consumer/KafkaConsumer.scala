@@ -169,6 +169,7 @@ private[kafka] trait PositionTracker {
     _positions(k) = msg.offset
   }
   def positions: Seq[PartitionTopicOffset] = {
-    _positions.map{case(tp, offset) => PartitionTopicOffset(tp.topic, tp.partition, offset)}(breakOut)
+    //the offset that gets committed is the next offset TO BE READ, so add one
+    _positions.map{case(tp, offset) => PartitionTopicOffset(tp.topic, tp.partition, offset + 1)}(breakOut)
   }
 }
