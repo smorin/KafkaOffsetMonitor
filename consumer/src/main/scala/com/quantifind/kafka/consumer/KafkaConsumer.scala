@@ -29,6 +29,7 @@ abstract class ConsumerTemplate[K,V,W,P <: Runnable](
 
 
   private[kafka] val consumer = kafka.consumer.Consumer.create(consumerConfig)
+  private[kafka] val committer = OffsetCommitter(consumer)
   private val topicIterators : Map[String, List[ConsumerIterator[K, V]]] =  {
     //does kafka auto-correct if I provide too many threads per topic?  the docs make me think the answer is no,
     // which is why I do this check.  but seems a little crazy
@@ -84,7 +85,7 @@ class KafkaConsumer[K,V](
   override
   def makeWorkerRunnable(worker: ConsumerWorker[K,V], itr: Iterator[MessageAndMetadata[K,V]]) = {
     new KafkaProcessor(
-      consumer,
+      committer,
       worker,
       itr,
       batchTime.toNanos
@@ -136,7 +137,7 @@ object KafkaConsumer {
 }
 
 private[kafka] class KafkaProcessor[K,V](
-    val consumer: ConsumerConnector,
+    val committer: OffsetCommitter,
     val worker: ConsumerWorker[K,V],
     val itr: Iterator[MessageAndMetadata[K,V]],
     val batchTimeNanos: Long
@@ -176,7 +177,8 @@ private[kafka] class KafkaProcessor[K,V](
   }
 
   def doCommit() {
-    consumer.commitOffsets(positions, preventBackwardsCommit = true)
+    println("committing offsets " + positions)
+    committer.commitOffsets(positions)
   }
 }
 

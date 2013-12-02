@@ -1,6 +1,6 @@
 package com.quantifind.kafka.consumer
 
-import java.util.concurrent.{Executors, BlockingQueue, ArrayBlockingQueue}
+import java.util.concurrent.{Executors,  ArrayBlockingQueue}
 
 import scala.collection._
 import scala.collection.JavaConverters._
@@ -8,7 +8,7 @@ import scala.concurrent.duration._
 
 
 import kafka.message.MessageAndMetadata
-import kafka.consumer.{ConsumerConfig, ConsumerTimeoutException, ConsumerConnector, PartitionTopicOffset}
+import kafka.consumer.{ConsumerConfig, ConsumerTimeoutException, ConsumerConnector}
 import kafka.serializer.{StringDecoder, Decoder}
 
 /**
@@ -76,7 +76,7 @@ class KafkaBatchConsumer[K,V,T](
       // commit happens, then quit.
 
       //and now that your app is through with processing the batch, we can commit the updates
-      consumer.commitOffsets(offsetsToCommit, preventBackwardsCommit = true)
+      committer.commitOffsets(offsetsToCommit)
     } catch {
       case ex: Exception =>
         ex.printStackTrace()

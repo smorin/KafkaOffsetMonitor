@@ -19,7 +19,9 @@ object KafkaUtilsBuild extends Build {
       "JBoss Repository" at "http://repository.jboss.org/nexus/content/repositories/releases/"
     ),
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "1.9.1" % "test"
+      "log4j" % "log4j" % "1.2.17",
+      "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+      "org.apache.kafka" % "kafka_2.10" % "0.8.0.d4553d" //this should be the normal 0.8.0 release, but its not official yet ...
     ),
 
     // Publishing configuration
