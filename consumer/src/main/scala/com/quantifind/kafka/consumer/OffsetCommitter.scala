@@ -5,6 +5,7 @@ import kafka.consumer.{ConsumerConfig, ConsumerConnector}
 import org.I0Itec.zkclient.ZkClient
 import kafka.utils.ZKGroupTopicDirs
 import kafka.utils.ZkUtils._
+import java.lang.reflect.Field
 
 /**
  * this is needed as a bridge until https://issues.apache.org/jira/browse/KAFKA-1144 makes it into kafka.  In the
@@ -25,17 +26,25 @@ object OffsetCommitter {
     val cls = consumer.getClass()
     if (cls.getCanonicalName() == "kafka.consumer.ZookeeperConsumerConnector") {
       //scary reflection code ... but this get us into the internals that we need ...
-      val zkField = cls.getField("zkClient")
-      zkField.setAccessible(true)
-      val zkClient = zkField.get(consumer).asInstanceOf[ZkClient]
-      val configField = cls.getField("config")
-      configField.setAccessible(true)
-      val group = configField.get(consumer).asInstanceOf[ConsumerConfig].groupId
+      val fields = cls.getDeclaredFields
+      val zkClient = getMatchingField(consumer,fields, "zkClient", classOf[ZkClient])
+      val config = getMatchingField(consumer, fields, "config", classOf[ConsumerConfig])
+      val group = config.groupId
       new ZookeeperOffsetCommitter(zkClient, group)
     } else {
       throw new RuntimeException("sorry, don't know what do with consumers of type " + cls)
     }
   }
+
+  private[consumer] def getMatchingField[T](o:AnyRef, fields: Array[Field], name:String, typ: Class[T]) : T= {
+    val possibleFields = fields.filter{_.getType.isAssignableFrom(typ)}.filter{_.getName().contains(name)}
+    if (possibleFields.size > 1)
+      throw new RuntimeException("oops! found more than one matching fields, not sure what to do:" + possibleFields.mkString(","))
+    val f = possibleFields.head
+    f.setAccessible(true)
+    f.get(o).asInstanceOf[T]
+  }
+
 
 }
 
