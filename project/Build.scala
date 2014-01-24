@@ -57,6 +57,16 @@ object KafkaUtilsBuild extends Build {
 
   lazy val offsetmonitor = Project("offsetmonitor", file("offsetmonitor"), settings = offsetmonSettings)
 
-  def offsetmonSettings = sharedSettings
-
+  def offsetmonSettings = sharedSettings ++ Seq(
+  	  name := "kafka-offset-monitor",
+	  libraryDependencies ++= Seq(
+	  					   "net.databinder" %% "unfiltered-filter" % "0.6.7",
+						   "net.databinder" %% "unfiltered-jetty" % "0.6.7",
+						   "net.databinder" %% "unfiltered-json" % "0.6.7",
+						   "com.quantifind" %% "sumac" % "0.2.3"
+						   ),
+	   resolvers ++= Seq(
+	     "java m2" at "http://download.java.net/maven/2"
+	)
+  )
 }

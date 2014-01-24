@@ -1,0 +1,59 @@
+<div class="page-header">
+  <h1>Details for the consumer group </strong>{{group}}</strong></h1>
+</div>
+
+<ol class="breadcrumb">
+  <li><a href="#/">Home</a></li>
+  <li class="active">{{group}}</li>
+</ol>
+
+<h2>Brokers</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>id</th>
+      <th>host</th>
+      <th>port</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="b in info.brokers">
+      <td>{{b.id}}</td>
+      <td>{{b.host}}</td>
+      <td>{{b.port}}</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr/>
+
+<h2>Consumer Offsets</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+	  <th>Group</th>
+	  <th>Topic</th>
+	  <th>Pid</th>
+	  <th>Offset</th>
+	  <th>logSize</th>
+	  <th>Lag</th>
+	  <th>Owner</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr  ng-repeat-start="c in info.offsets" ng-click="toggle(c.group+c.topic)">
+	  <th>{{c.group}}</th>
+	  <th>{{c.topic}}</th>
+	  <th>{{c.partition}}</th>
+	  <th>{{c.offset}}</th>
+	  <th>{{c.logSize}}</th>
+	  <th>{{c.logSize - c.offset}}</th>
+	  <th>{{c.owner}}</th>
+    </tr>
+	<tr ng-repeat-end ng-show="c.group+c.topic == showing">
+	  <td colspan="7"><chart data="c.data"></chart></td>
+	</tr>
+  </tbody>
+</table>
