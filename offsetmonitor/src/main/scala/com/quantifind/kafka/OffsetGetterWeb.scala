@@ -9,6 +9,8 @@ import com.quantifind.kafka.OffsetGetter.KafkaInfo
 import unfiltered.response.{Ok, ResponseString, JsonContent, Json}
 import net.liftweb.json.Serialization.write
 import net.liftweb.json.{Serialization, NoTypeHints}
+import java.util.{TimerTask, Timer}
+import scala.concurrent.duration._
 
 class OWArgs extends OffsetGetterArgs with UnfilteredWebApp.Arguments
 
@@ -19,6 +21,20 @@ class OWArgs extends OffsetGetterArgs with UnfilteredWebApp.Arguments
  */
 object OffsetGetterWeb extends UnfilteredWebApp[OWArgs] with Logging {
   def htmlRoot: String = "/offsetapp"
+
+  val timer = new Timer()
+
+  def writeToDb() {
+    //TODO write data point in DB
+  }
+
+  def schedule() {
+    timer.scheduleAtFixedRate(new TimerTask() {
+      override def run() {
+        writeToDb()
+      }
+    }, 0, 1.day.toMillis)
+  }
 
 
   def withZK[T](args: OWArgs)(f: ZkClient => T): T = {
