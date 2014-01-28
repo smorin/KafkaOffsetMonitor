@@ -43,8 +43,8 @@
     </tr>
   </thead>
   <tbody>
-    <tr  ng-repeat-start="c in info.offsets" ng-click="toggle(c.group+c.topic)">
-	  <th>{{c.group}}</th>
+    <tr ng-repeat="c in info.offsets">
+	  <th><a href="#/group/{{c.group}}/{{c.topic}}">{{c.group}}</a></th>
 	  <th>{{c.topic}}</th>
 	  <th>{{c.partition}}</th>
 	  <th>{{c.offset}}</th>
@@ -52,8 +52,5 @@
 	  <th>{{c.logSize - c.offset}}</th>
 	  <th>{{c.owner}}</th>
     </tr>
-	<tr ng-repeat-end ng-show="c.group+c.topic == showing">
-	  <td colspan="7"><chart data="c.data"></chart></td>
-	</tr>
   </tbody>
 </table>

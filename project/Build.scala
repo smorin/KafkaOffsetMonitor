@@ -63,7 +63,9 @@ object KafkaUtilsBuild extends Build {
 	  					   "net.databinder" %% "unfiltered-filter" % "0.6.7",
 						   "net.databinder" %% "unfiltered-jetty" % "0.6.7",
 						   "net.databinder" %% "unfiltered-json" % "0.6.7",
-						   "com.quantifind" %% "sumac" % "0.2.3"
+						   "com.quantifind" %% "sumac" % "0.2.3",
+                           "com.typesafe.slick" %% "slick" % "2.0.0",
+                           "org.xerial" % "sqlite-jdbc" % "3.7.2"
 						   ),
 	   resolvers ++= Seq(
 	     "java m2" at "http://download.java.net/maven/2"

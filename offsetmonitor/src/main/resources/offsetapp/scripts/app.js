@@ -9,7 +9,11 @@ var app = angular.module('offsetapp',
                                                          .when("/group/:group", {
                                                              templateUrl: "views/main.html",
                                                              controller: "MainCtrl"
-                                                         });
+                                                         })
+                                                         .when("/group/:group/:topic", {
+                                                             templateUrl: "views/topic.html",
+                                                             controller: "TopicCtrl"
+                                                         });;
                                                  });
 
 angular.module("offsetapp.services", ["ngResource"])

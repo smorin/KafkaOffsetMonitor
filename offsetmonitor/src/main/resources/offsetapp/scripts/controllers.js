@@ -13,22 +13,25 @@ angular.module('offsetapp.controllers',["offsetapp.services"])
 								 getData();
 								 var refresh = $interval(getData, 10000);
 
-								 $scope.showing = "";
-
 								 $scope.group = $routeParams.group;
 
 								 $scope.$on('$destroy', function() {
 									 if(angular.isDefined(refresh)) $interval.cancel(refresh);
 								 });
 
-								 $scope.toggle = function(label) {
-									 if($scope.showing == label) $scope.showing="";
-									 else $scope.showing = label;
-								 };
 							 }])
 	.controller("RootCtrl", ["$scope", "offsetinfo",
 							 function($scope, offsetinfo) {
 								 offsetinfo.list().success(function(d) {
 									  $scope.groups = d;
 								 });
-							 }]);
+							 }])
+	.controller("TopicCtrl", ["$scope", "$routeParams", "$http",
+						  function($scope, $routeParams, $http) {
+							  $scope.group = $routeParams.group;
+							  $scope.topic = $routeParams.topic;
+							  $scope.data = [];
+							  $http.get("/group/"+$routeParams.group+"/"+$routeParams.topic).success(function(d) {
+								  $scope.data = d.offsets;
+							  });
+						  }]);

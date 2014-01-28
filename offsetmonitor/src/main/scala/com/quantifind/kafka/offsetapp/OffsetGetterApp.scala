@@ -1,10 +1,12 @@
-package com.quantifind.kafka
+package com.quantifind.kafka.offsetapp
 
-import com.quantifind.sumac.{FieldArgs, ArgMain}
+import scala.concurrent.duration._
+
+import com.quantifind.sumac.{ArgMain, FieldArgs}
 import com.quantifind.sumac.validation.Required
 import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
-import scala.concurrent.duration._
+import com.quantifind.kafka.OffsetGetter
 
 class OffsetGetterArgsWGT extends OffsetGetterArgs {
   @Required

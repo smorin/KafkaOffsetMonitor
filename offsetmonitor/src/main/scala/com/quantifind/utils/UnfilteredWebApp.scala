@@ -17,13 +17,17 @@ trait UnfilteredWebApp[T <: Arguments] extends ArgMain[T] {
 
   def setup(args: T): unfiltered.filter.Plan
 
+  def afterStart() {}
+
+  def afterStop() {}
+
   override def main(parsed: T) {
     val root = getClass.getResource(htmlRoot)
     println("serving resources from: " + root)
     unfiltered.jetty.Http(parsed.port)
       .resources(root) //whatever is not matched by our filter will be served from the resources folder (html, css, ...)
       .filter(setup(parsed))
-      .run()
+      .run(_ => afterStart(), _ => afterStop())
   }
 
 }
