@@ -1,9 +1,11 @@
 import sbt._
 import Keys._
+import sbtassembly.Plugin._
+import AssemblyKeys._
 
 object KafkaUtilsBuild extends Build {
 
-  def sharedSettings = Defaults.defaultSettings ++ Seq(
+  def sharedSettings = Defaults.defaultSettings ++ assemblySettings ++ Seq(
     version := "0.1.0-SNAPSHOT",
     scalaVersion := "2.10.3",
     organization := "com.quantifind",
