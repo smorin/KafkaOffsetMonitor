@@ -1,11 +1,10 @@
 package com.quantifind.kafka.offsetapp
 
-import scala.collection.breakOut
 import scala.slick.driver.SQLiteDriver.simple._
 import scala.slick.jdbc.meta.MTable
 
 import com.quantifind.kafka.OffsetGetter.OffsetInfo
-import com.quantifind.kafka.offsetapp.OffsetDB.{OffsetHistory, OffsetPoints, DbOffsetInfo}
+import com.quantifind.kafka.offsetapp.OffsetDB.{DbOffsetInfo, OffsetHistory, OffsetPoints}
 
 /**
  * Tools to store offsets in a DB

@@ -3,12 +3,12 @@ var app = angular.module('offsetapp',
                                                  function($routeProvider) {
                                                          $routeProvider
 														 .when("/", {
-															 templateUrl: "views/root.html",
-															 controller: "RootCtrl"
+															 templateUrl: "views/grouplist.html",
+															 controller: "GroupListCtrl"
 														 })
                                                          .when("/group/:group", {
-                                                             templateUrl: "views/main.html",
-                                                             controller: "MainCtrl"
+                                                             templateUrl: "views/group.html",
+                                                             controller: "GroupCtrl"
                                                          })
                                                          .when("/group/:group/:topic", {
                                                              templateUrl: "views/topic.html",

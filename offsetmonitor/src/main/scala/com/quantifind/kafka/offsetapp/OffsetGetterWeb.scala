@@ -43,7 +43,7 @@ object OffsetGetterWeb extends UnfilteredWebApp[OWArgs] with Logging {
     groups.foreach {
       g =>
         val inf = getInfo(g, args).offsets.toIndexedSeq
-        info(s"inderting ${inf.size}")
+        info(s"inserting ${inf.size}")
         args.db.insetAll(inf)
     }
   }
