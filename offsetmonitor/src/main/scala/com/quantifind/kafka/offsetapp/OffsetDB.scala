@@ -36,7 +36,7 @@ class OffsetDB(dbfile: String) {
 
     def tidx = index("idx_time", (timestamp))
 
-    def uidx = index("idx_unique", (group, topic, timestamp), unique = true)
+    def uidx = index("idx_unique", (group, topic, partition, timestamp), unique = true)
 
   }
 
