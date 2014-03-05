@@ -8,55 +8,61 @@
 </ol>
 
 <div class="alert alert-info" ng-show="loading">
-Loading ...
+  Loading ...
 </div>
 
 <div ng-hide="loading">
-<h2>Brokers</h2>
+  <h2>Brokers</h2>
 
-<table class="table">
-  <thead>
-    <tr>
-      <th>id</th>
-      <th>host</th>
-      <th>port</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr ng-repeat="b in info.brokers">
-      <td>{{b.id}}</td>
-      <td>{{b.host}}</td>
-      <td>{{b.port}}</td>
-    </tr>
-  </tbody>
-</table>
+  <table class="table">
+	<thead>
+      <tr>
+		<th>id</th>
+		<th>host</th>
+		<th>port</th>
+      </tr>
+	</thead>
+	<tbody>
+      <tr ng-repeat="b in info.brokers">
+		<td>{{b.id}}</td>
+		<td>{{b.host}}</td>
+		<td>{{b.port}}</td>
+      </tr>
+	</tbody>
+  </table>
 
-<hr/>
+  <hr/>
 
-<h2>Consumer Offsets</h2>
+  <h2>Consumer Offsets</h2>
 
-<table class="table">
-  <thead>
-    <tr>
-	  <th>Group</th>
-	  <th>Topic</th>
-	  <th>Pid</th>
-	  <th>Offset</th>
-	  <th>logSize</th>
-	  <th>Lag</th>
-	  <th>Owner</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr ng-repeat="c in info.offsets">
-	  <th><a href="#/group/{{c.group}}/{{c.topic}}">{{c.group}}</a></th>
-	  <th>{{c.topic}}</th>
-	  <th>{{c.partition}}</th>
-	  <th>{{c.offset}}</th>
-	  <th>{{c.logSize}}</th>
-	  <th>{{c.logSize - c.offset}}</th>
-	  <th>{{c.owner}}</th>
-    </tr>
-  </tbody>
-</table>
+  <table class="table">
+	<thead>
+      <tr>
+		<th>Topic</th>
+		<th>Pid</th>
+		<th>Offset</th>
+		<th>logSize</th>
+		<th>Lag</th>
+		<th>Owner</th>
+      </tr>
+	</thead>
+	<tbody ng-repeat="c in info.offsets">
+	  <tr class="topic-row">
+		<td><a href="#/group/{{c.group}}/{{c.topic}}">{{c.topic}}</a></td>
+		<td></td>
+		<td>{{c.offset}}</td>
+		<td>{{c.logSize}}</td>
+		<td>{{c.logSize - c.offset}}</td>
+		<td></td>
+	  </tr>
+	  <tr class="partition-row" ng-repeat="p in c.partitions">
+		<td></td>
+		<td>{{p.partition}}</td>
+		<td>{{p.offset}}</td>
+		<td>{{p.logSize}}</td>
+		<td>{{p.logSize - p.offset}}</td>
+		<td>{{p.owner}}</td>
+	  </tr>
+	</tbody>
+  </table>
 </div>
