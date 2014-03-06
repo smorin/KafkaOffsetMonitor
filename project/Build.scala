@@ -22,45 +22,18 @@ object KafkaUtilsBuild extends Build {
     libraryDependencies ++= Seq(
       "log4j" % "log4j" % "1.2.17",
       "org.scalatest" %% "scalatest" % "1.9.1" % "test",
-      "org.apache.kafka" % "kafka_2.10" % "0.8.0.d4553d" //this should be the normal 0.8.0 release, but its not official yet ...
-    ),
-
-    // Publishing configuration
-
-    publishMavenStyle := true,
-
-    publishTo <<= version { (v: String) =>
-      val nexus = "https://oss.sonatype.org/"
-      val qf = "http://repo.quantifind.com/content/repositories/"
-      if (v.trim.endsWith("SNAPSHOT"))
-        Some("snapshots" at qf + "snapshots")
-      else
-        Some("releases"  at qf + "releases")
-    },
-
-    publishArtifact in Test := false,
-
-    pomIncludeRepository := { x => false }
+      "org.apache.kafka" % "kafka_2.10" % "0.8.0.d4553d" //this should be the normal 0.8.0 release, but its not official yet ...    
+	)
   )
 
   val slf4jVersion = "1.6.1"
 
-//Consumer project
-  lazy val consumer = Project("consumer", file("consumer"), settings = consumerSettings)
-
-  def consumerSettings = sharedSettings ++ Seq(
-    name := "kafka-consumer-util",
-    libraryDependencies ++= Seq(
-      "org.apache.kafka" % "kafka_2.10" % "0.8.0.a51bd8c" //this is a version of kafka w/ commitOffsets(offsets)
-    )
-  )
-
 //offsetmonitor project
 
-  lazy val offsetmonitor = Project("offsetmonitor", file("offsetmonitor"), settings = offsetmonSettings)
+  lazy val offsetmonitor = Project("offsetmonitor", file("."), settings = offsetmonSettings)
 
   def offsetmonSettings = sharedSettings ++ Seq(
-  	  name := "kafka-offset-monitor",
+  	  name := "KafkaOffsetMonitor",
 	  libraryDependencies ++= Seq(
 	  	"net.databinder" %% "unfiltered-filter" % "0.6.7",
 		"net.databinder" %% "unfiltered-jetty" % "0.6.7",
