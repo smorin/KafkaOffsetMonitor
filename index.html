@@ -35,7 +35,7 @@
 
 <p>You can see the current consumer groups, for each group the topics that they are consuming and the position of the group in each topic queue. This is useful to understand how quick you are consuming from a queue and how fast the queue is growing. It allows for debuging kafka producers and consumers or just to have an idea of what is going on in  your system.</p>
 
-<p>The app keeps an history of queue position and lag of the consumers so you can have a overview of what has happened in the last days.</p>
+<p>The app keeps an history of queue position and lag of the consumers so you can have an overview of what has happened in the last days.</p>
 
 <p>Here are a few screenshots:</p>
 
@@ -73,7 +73,10 @@
 <strong>refresh</strong> how often should the app refresh and store a point in the DB</li>
 <li>
 <strong>retain</strong> how long should points be kept in the DB</li>
+<li>
+<strong>dbName</strong> where to store the sqllite DB containing the history (default 'offsetapp')</li>
 </ul>
+
       </section>
     </div>
 
