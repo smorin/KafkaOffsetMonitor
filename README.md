@@ -5,7 +5,7 @@ This is an app to monitor your kafka consumers and their position (offset) in th
 
 You can see the current consumer groups, for each group the topics that they are consuming and the position of the group in each topic queue. This is useful to understand how quick you are consuming from a queue and how fast the queue is growing. It allows for debuging kafka producers and consumers or just to have an idea of what is going on in  your system.
 
-The app keeps an history of queue position and lag of the consumers so you can have a overview of what has happened in the last days.
+The app keeps an history of queue position and lag of the consumers so you can have an overview of what has happened in the last days.
 
 Here are a few screenshots:
 
@@ -39,3 +39,4 @@ The arguments are:
 - **port** on what port will the app be available
 - **refresh** how often should the app refresh and store a point in the DB
 - **retain** how long should points be kept in the DB
+- **dbName** where to store the history (default 'offsetapp')
