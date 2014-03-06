@@ -4,17 +4,27 @@
   border-top: 3px solid #CCC;
 }
 
-.bs-callout-info {
-background-color: #f4f8fa;
-border-color: #5bc0de;
+.speed {
+  margin: 25px 0;
+ }
+
+.speed .label {
+  font-size: 40px;
+ }
+
+.speed .label .small {
+  font-size: 18px;
+ }
+
+.speed .label strong {
+  margin: 0 10px;
+ }
+
+.speed .label .glyphicon {
+  margin-left: 5px;
 }
-.bs-callout {
-margin: 20px 0;
-padding: 20px;
-border-left: 3px solid #eee;
-color: black;
-}
-.bs-callout-info h4 {
-color: #5bc0de;
-text-shadow: none;
-}
+
+.speed .label small { 
+font-size: 10px;
+color: lightblue;
+ }

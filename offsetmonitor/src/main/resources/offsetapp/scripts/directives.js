@@ -5,18 +5,23 @@ angular.module("offsetapp.directives", [])
 		return {
 			restrict: 'E',
 			template: '<div>'
-					  + '<div class="row">'
-					  + '<div class="alert alert-info col-md-2" ng-hide="loading">'
-					  + '<strong>last {{deltaT_sec|number:0}} seconds:</strong>'
-					  + '<div class="label label-default"><span class="glyphicon glyphicon-log-in"></span> {{inspeed|number:3}} msg/s</div><br/>'
-					  + '<div class="label label-default">{{outspeed|number:3}} msg/s <span class="glyphicon glyphicon-log-out"></span></div>'
-					  + '</div>'
-					  + '</div>'
-					  + '<div class="row">'
-					  + '<div class="chart" ng-hide="loading"></div>'
-					  + '<div class="alert alert-info" ng-show="loading">Loading</div>'
-					  + '</div>'
-					  + '</div>',
+				+ '<div class="row speed" ng-hide="loading">'
+				+ '<div class="label label-info col-md-3">'
+				+ '<span class="glyphicon glyphicon-log-in"></span> '
+				+ '<strong>{{inspeed|number:3}}</strong> <span class="small">msg/s</span>'
+				+ '<br><small>in the last {{deltaT_min|number:0}} minutes.</small>'
+				+ '</div>'
+				+ '<div class="label label-info  col-md-3 col-md-offset-5">'
+				+ '<strong>{{outspeed|number:3}}</strong> <span class="small">msg/s</span>'
+				+ '<span class="glyphicon glyphicon-log-out"></span> '
+				+ '<br><small>in the last {{deltaT_min|number:0}} minutes.</small>'
+				+ '</div>'
+				+ '</div>'
+				+ '<div class="row">'
+				+ '<div class="chart ng-md-12" ng-hide="loading"></div>'
+				+ '<div class="alert ng-md-12 alert-info" ng-show="loading">Loading</div>'
+				+ '</div>'
+				+ '</div>',
 			replace: true,
 			scope: {
 				data: "="
@@ -38,11 +43,12 @@ angular.module("offsetapp.directives", [])
 					if(data.length > 5) {
 						var last = data[data.length-1];
 						var beforeLast = data[data.length-5];
-						scope.deltaT_sec = (last.timestamp-beforeLast.timestamp)/1000;
+						var deltaT_sec = (last.timestamp-beforeLast.timestamp)/1000;
+						scope.deltaT_min = deltaT_sec/60;
 						var deltaIn = last.logSize-beforeLast.logSize;
-						scope.inspeed = deltaIn/scope.deltaT_sec;
+						scope.inspeed = deltaIn/deltaT_sec;
 						var deltaOut = last.offset-beforeLast.offset;
-						scope.outspeed = deltaOut/scope.deltaT_sec;
+						scope.outspeed = deltaOut/deltaT_sec;
 					}
 
 					Highcharts.setOptions({
@@ -57,6 +63,7 @@ angular.module("offsetapp.directives", [])
 							backgroundColor: "#2E3338",
 							plotBackgroundColor:"#3E444C",
 							height: 700,
+							width:1200,
 							renderTo: $(element).find(".chart")[0]
 						},rangeSelector: {
 							inputEnabled: false
@@ -69,7 +76,6 @@ angular.module("offsetapp.directives", [])
 							margin: 30,
 							itemMarginTop: 2,
 							itemMarginBottom: 2,
-							width:600,
 							itemWidth:300,
 							itemHoverStyle: {
 								color: "white"
