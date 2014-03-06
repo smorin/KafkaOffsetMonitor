@@ -9,6 +9,8 @@ import kafka.consumer.SimpleConsumer
 import kafka.utils.{Json, Logging, ZkUtils}
 import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.exception.ZkNoNodeException
+import com.twitter.util.Time
+import org.apache.zookeeper.data.Stat
 
 /**
  * a nicer version of kafka's ConsumerOffsetChecker tool
@@ -43,7 +45,7 @@ class OffsetGetter(zkClient: ZkClient) extends Logging {
   }
 
   private def processPartition(group: String, topic: String, pid: Int): Option[OffsetInfo] = {
-    val (offset, _) = ZkUtils.readData(zkClient, s"${ZkUtils.ConsumersPath}/$group/offsets/$topic/$pid")
+    val (offset, stat: Stat) = ZkUtils.readData(zkClient, s"${ZkUtils.ConsumersPath}/$group/offsets/$topic/$pid")
     val (owner, _) = ZkUtils.readDataMaybeNull(zkClient, s"${ZkUtils.ConsumersPath}/$group/owners/$topic/$pid")
 
     ZkUtils.getLeaderForPartition(zkClient, topic, pid) match {
@@ -61,7 +63,9 @@ class OffsetGetter(zkClient: ZkClient) extends Logging {
               partition = pid,
               offset = offset.toLong,
               logSize = logSize,
-              owner = owner)
+              owner = owner,
+              creation = Time.fromMilliseconds(stat.getCtime),
+              modified = Time.fromMilliseconds(stat.getMtime))
         }
       case None =>
         error("No broker for partition %s - %s".format(topic, pid))
@@ -110,7 +114,7 @@ class OffsetGetter(zkClient: ZkClient) extends Logging {
   }
 
   def getGroups: Seq[String] = {
-        ZkUtils.getChildren(zkClient, ZkUtils.ConsumersPath)
+    ZkUtils.getChildren(zkClient, ZkUtils.ConsumersPath)
   }
 
   def close() {
@@ -135,7 +139,9 @@ object OffsetGetter {
                         partition: Int,
                         offset: Long,
                         logSize: Long,
-                        owner: Option[String]) {
+                        owner: Option[String],
+                        creation: Time,
+                        modified: Time) {
     val lag = logSize - offset
   }
 

@@ -39,11 +39,13 @@
 	<thead>
       <tr>
 		<th>Topic</th>
-		<th>Pid</th>
+		<th>Partition</th>
 		<th>Offset</th>
 		<th>logSize</th>
 		<th>Lag</th>
 		<th>Owner</th>
+		<th>Created</th>
+		<th>Last Seen</th>
       </tr>
 	</thead>
 	<tbody ng-repeat="c in info.offsets">
@@ -54,6 +56,8 @@
 		<td>{{c.logSize}}</td>
 		<td>{{c.logSize - c.offset}}</td>
 		<td></td>
+		<td></td>
+		<td></td>
 	  </tr>
 	  <tr class="partition-row" ng-repeat="p in c.partitions">
 		<td></td>
@@ -62,6 +66,8 @@
 		<td>{{p.logSize}}</td>
 		<td>{{p.logSize - p.offset}}</td>
 		<td>{{p.owner}}</td>
+		<td><moment timestamp="{{p.creation}}"></moment></td>
+		<td><moment timestamp="{{p.modified}}"></moment></td>
 	  </tr>
 	</tbody>
   </table>

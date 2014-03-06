@@ -1,6 +1,25 @@
 'use strict';
 
 angular.module("offsetapp.directives", [])
+	.directive('moment', function($timeout) {
+		return {
+			restrict: 'E',
+			template: '<span>{{moment}}</span>',
+			replace: true,
+			scope: {
+				timestamp: "@"
+			},
+			link: function(scope, element, attrs) {
+				scope.$watch("timestamp", function(ov, nv) {
+					var m = moment(parseInt(scope.timestamp));
+					scope.moment = m.fromNow();
+					$timeout(function() {
+						scope.moment = m.fromNow();
+					}, 5000);
+				});
+			}
+		};
+	})
 	.directive('chart', function($timeout) {
 
 		function findY(data, x, min) {
