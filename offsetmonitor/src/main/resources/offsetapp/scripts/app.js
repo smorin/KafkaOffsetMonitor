@@ -25,7 +25,6 @@ angular.module("offsetapp.services", ["ngResource"])
 					if(!t) t = 0;
 					return p.group+p.topic+t.toString();
 				});
-				console.log(groups.value());
 				groups = groups.values().map(function(partitions) {
 					return {
 						group: partitions[0].group,
@@ -41,7 +40,6 @@ angular.module("offsetapp.services", ["ngResource"])
 					};
 				}).value();
 				data.offsets = groups;
-				console.log(groups);
 				cb(data);
 			};
 		}
