@@ -1,7 +1,30 @@
 'use strict';
 
 angular.module("offsetapp.directives", [])
-	.directive('chart', function() {
+	.directive('chart', function($timeout) {
+
+		function findY(data, x, min) {
+			for(var i=0; i< data.length; i++) {
+				if(data[i][0] > x) {
+					if(min) return data[i][1];
+					else return data[Math.max(0, i-1)][1];
+				}
+			}
+			return data[data.length-1][1];
+		}
+
+		function showSpeed(scope, min, max) {
+			$timeout(function(){
+				var duration = moment.duration(max.timestamp-min.timestamp);
+				var deltaT_sec = (max.timestamp-min.timestamp)/1000;
+				scope.deltaT_str = duration.humanize();
+				var deltaIn = max.logSize-min.logSize;
+				scope.inspeed = deltaIn/deltaT_sec;
+				var deltaOut = max.offset-min.offset;
+				scope.outspeed = deltaOut/deltaT_sec;
+			});
+		}
+
 		return {
 			restrict: 'E',
 			template: '<div>'
@@ -9,12 +32,12 @@ angular.module("offsetapp.directives", [])
 				+ '<div class="label label-info col-md-3">'
 				+ '<span class="glyphicon glyphicon-log-in"></span> '
 				+ '<strong>{{inspeed|number:3}}</strong> <span class="small">msg/s</span>'
-				+ '<br><small>in the last {{deltaT_min|number:0}} minutes.</small>'
+				+ '<br><small>over {{deltaT_str}}.</small>'
 				+ '</div>'
 				+ '<div class="label label-info  col-md-3 col-md-offset-5">'
 				+ '<strong>{{outspeed|number:3}}</strong> <span class="small">msg/s</span>'
 				+ '<span class="glyphicon glyphicon-log-out"></span> '
-				+ '<br><small>in the last {{deltaT_min|number:0}} minutes.</small>'
+				+ '<br><small>over {{deltaT_str}}.</small>'
 				+ '</div>'
 				+ '</div>'
 				+ '<div class="row">'
@@ -39,16 +62,8 @@ angular.module("offsetapp.directives", [])
 						];
 					}).unzip().value();
 					scope.loading = data.length <= 0;
-
-					if(data.length > 5) {
-						var last = data[data.length-1];
-						var beforeLast = data[data.length-5];
-						var deltaT_sec = (last.timestamp-beforeLast.timestamp)/1000;
-						scope.deltaT_min = deltaT_sec/60;
-						var deltaIn = last.logSize-beforeLast.logSize;
-						scope.inspeed = deltaIn/deltaT_sec;
-						var deltaOut = last.offset-beforeLast.offset;
-						scope.outspeed = deltaOut/deltaT_sec;
+					if(data.length > 0) {
+						showSpeed(scope, data[0], data[data.length-1]);
 					}
 
 					Highcharts.setOptions({
@@ -65,7 +80,8 @@ angular.module("offsetapp.directives", [])
 							height: 700,
 							width:1200,
 							renderTo: $(element).find(".chart")[0]
-						},rangeSelector: {
+						},
+						rangeSelector: {
 							inputEnabled: false
 						},
 						legend : {
@@ -95,7 +111,23 @@ angular.module("offsetapp.directives", [])
 								month: '%e. %b',
 								year: '%b'
 							},
-							ordinal: false},
+							ordinal: false,
+							events: {
+								setExtremes: function(event) {
+									var min = {
+										timestamp: Math.floor(event.min),
+										offset: findY(d[1], event.min, false),
+										logSize: findY(d[0], event.min, false)
+									};
+									var max = {
+										timestamp: Math.ceil(event.max),
+										offset: findY(d[1], event.max, false),
+										logSize: findY(d[0], event.max, false)
+									};
+									showSpeed(scope, min, max);
+								}
+							}
+						},
 						yAxis: [{
 							title: {
 								text: "Offset Position",
