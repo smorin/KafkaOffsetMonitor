@@ -12,25 +12,32 @@ Here are a few screenshots:
 List of Consumer Groups
 -----------------------
 
-![Consumer Groups](img/groups.png)
+![Consumer Groups](http://quantifind.github.io/KafkaOffsetMonitor/img/groups.png)
 
 List of Topics for a Group
 --------------------------
 
-![Topic List](img/topics.png)
+![Topic List](http://quantifind.github.io/KafkaOffsetMonitor/img/topics.png)
 
 History of Topic position
 -------------------------
 
-![Position Graph](img/graph.png)
+![Position Graph](http://quantifind.github.io/KafkaOffsetMonitor/img/graph.png)
 
 Running It
 ===========
 
+If you do not want to build it manually, just download the [current jar](http://quantifind.github.io/KafkaOffsetMonitor/dist/KafkaOffsetMonitor-assembly-0.1.0-SNAPSHOT.jar).
+
 This is a small webapp, you can run it locally or on a server, as long as you have access to the ZooKeeper nodes controlling kafka.
 
 ```
-java -cp kafkamonitor.jar com.quantifind.kafka.offsetapp.OffsetGetterWeb --zk zk-01.dev,zk-02.dev,zk-03.dev --port 8080 --refresh 10.seconds --retain 2.days
+java -cp KafkaOffsetMonitor-assembly-0.1.0-SNAPSHOT.jar \
+     com.quantifind.kafka.offsetapp.OffsetGetterWeb \
+     --zk zk-server1,zk-server2 \
+     --port 8080 \
+     --refresh 10.seconds \
+     --retain 2.days
 ```
 
 The arguments are:
