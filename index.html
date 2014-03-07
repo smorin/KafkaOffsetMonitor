@@ -42,24 +42,31 @@
 <h2>
 <a name="list-of-consumer-groups" class="anchor" href="#list-of-consumer-groups"><span class="octicon octicon-link"></span></a>List of Consumer Groups</h2>
 
-<p><img src="img/groups.png" alt="Consumer Groups"></p>
+<p><img src="http://quantifind.github.io/KafkaOffsetMonitor/img/groups.png" alt="Consumer Groups"></p>
 
 <h2>
 <a name="list-of-topics-for-a-group" class="anchor" href="#list-of-topics-for-a-group"><span class="octicon octicon-link"></span></a>List of Topics for a Group</h2>
 
-<p><img src="img/topics.png" alt="Topic List"></p>
+<p><img src="http://quantifind.github.io/KafkaOffsetMonitor/img/topics.png" alt="Topic List"></p>
 
 <h2>
 <a name="history-of-topic-position" class="anchor" href="#history-of-topic-position"><span class="octicon octicon-link"></span></a>History of Topic position</h2>
 
-<p><img src="img/graph.png" alt="Position Graph"></p>
+<p><img src="http://quantifind.github.io/KafkaOffsetMonitor/img/graph.png" alt="Position Graph"></p>
 
 <h1>
 <a name="running-it" class="anchor" href="#running-it"><span class="octicon octicon-link"></span></a>Running It</h1>
 
+<p>If you do not want to build it manually, just download the <a href="http://quantifind.github.io/KafkaOffsetMonitor/dist/KafkaOffsetMonitor-assembly-0.1.0-SNAPSHOT.jar">current jar</a>.</p>
+
 <p>This is a small webapp, you can run it locally or on a server, as long as you have access to the ZooKeeper nodes controlling kafka.</p>
 
-<pre><code>java -cp kafkamonitor.jar com.quantifind.kafka.offsetapp.OffsetGetterWeb --zk zk-01.dev,zk-02.dev,zk-03.dev --port 8080 --refresh 10.seconds --retain 2.days
+<pre><code>java -cp KafkaOffsetMonitor-assembly-0.1.0-SNAPSHOT.jar \
+     com.quantifind.kafka.offsetapp.OffsetGetterWeb \
+     --zk zk-server1,zk-server2 \
+     --port 8080 \
+     --refresh 10.seconds \
+     --retain 2.days
 </code></pre>
 
 <p>The arguments are:</p>
@@ -74,12 +81,21 @@
 <li>
 <strong>retain</strong> how long should points be kept in the DB</li>
 <li>
-<strong>dbName</strong> where to store the sqllite DB containing the history (default 'offsetapp')</li>
+<strong>dbName</strong> where to store the history (default 'offsetapp')</li>
 </ul>
-
       </section>
     </div>
 
-    
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-48773433-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
   </body>
 </html>
